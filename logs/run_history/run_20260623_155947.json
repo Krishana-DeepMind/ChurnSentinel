@@ -1,0 +1,42 @@
+{
+  "run_at": "2026-06-23T15:59:47.579950",
+  "tickets_processed": 1,
+  "escalations_drafted": 1,
+  "watchlist_entries_logged": 0,
+  "low_risk_processed": 0,
+  "details": [
+    {
+      "ticket_id": "ticket_002",
+      "sender_email": "bob.jones@megacorp.com",
+      "sentiment_verdict": {
+        "sentiment_label": "angry",
+        "frustration_score": 100,
+        "churn_signals_detected": true,
+        "key_phrases": [
+          "Subject: CRITICAL: Unresolved downtime and serious platform issues",
+          "I am writing this out of sheer frustration",
+          "Frankly, this level of service is completely unacceptable"
+        ]
+      },
+      "crm_record": {
+        "email": "bob.jones@megacorp.com",
+        "company_name": "MegaCorp Inc.",
+        "annual_revenue": 250000,
+        "days_until_renewal": 12,
+        "account_manager_email": "am.tony@revenueprotector.com",
+        "account_manager_name": "Tony Stark",
+        "tier": "Enterprise"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 100.0,
+        "risk_tier": "CODE_RED",
+        "rationale": "High revenue account (MegaCorp Inc., ARR $250,000) is within imminent renewal window (12 days) and exhibiting explicit dissatisfaction or churn indicators.",
+        "recommended_action": "Escalate immediately to Account Manager Tony Stark (am.tony@revenueprotector.com). Conduct a wellness review and offer renewal concessions."
+      },
+      "outbox_action": "draft_account_manager_escalation",
+      "outbox_file_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\outbox\\escalations\\escalation_ticket_002_20260623_155947_579950.json",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_002.txt"
+    }
+  ]
+}

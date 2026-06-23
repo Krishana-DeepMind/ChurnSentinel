@@ -1,0 +1,41 @@
+{
+  "run_at": "2026-06-23T15:57:26.928092",
+  "tickets_processed": 1,
+  "escalations_drafted": 0,
+  "watchlist_entries_logged": 0,
+  "low_risk_processed": 1,
+  "details": [
+    {
+      "ticket_id": "ticket_001",
+      "sender_email": "alice.smith@acme-micro.com",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 0,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Hope you're having a good week",
+          "I just wanted to report a minor thing we noticed on our company dashboard"
+        ]
+      },
+      "crm_record": {
+        "email": "alice.smith@acme-micro.com",
+        "company_name": "Acme Micro",
+        "annual_revenue": 1200,
+        "days_until_renewal": 250,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "SMB"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 7.0,
+        "risk_tier": "LOW",
+        "rationale": "Account Acme Micro represents low financial exposure (ARR $1,200) and ticket contains standard support request with no churn threat.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "outbox_file_path": "",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_001.txt"
+    }
+  ]
+}

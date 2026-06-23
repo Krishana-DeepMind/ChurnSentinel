@@ -1,0 +1,16 @@
+Subject: CRITICAL: Unresolved downtime and serious platform issues
+From: Bob Jones <bob.jones@megacorp.com>
+Date: Tue, 23 Jun 2026 09:15:44 -0400
+Importance: High
+
+To: Senior Management / Escalations Team
+
+I am writing this out of sheer frustration. This is the THIRD time in two weeks that our API sync has failed during business hours, causing major operational delays for MegaCorp. We have submitted tickets through your standard channel but keep getting template responses.
+
+Frankly, this level of service is completely unacceptable. We are paying you guys a substantial amount of money, and with our contract renewal coming up next month, we are seriously evaluating other vendors. We cannot run our business on a platform that breaks this often. 
+
+If this API downtime isn't permanently fixed and a manager doesn't call me today, I will block the renewal and we will migrate off your system immediately.
+
+Bob Jones
+Director of Operations, MegaCorp Inc.
+bob.jones@megacorp.com
