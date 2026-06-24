@@ -1,0 +1,12 @@
+Subject: Query about API endpoints documentation
+From: Elena Vance <elena.vance@blackmesa.org>
+Date: Mon, 22 Jun 2026 10:00:00 -0400
+
+Hi, 
+
+Could you please point me to the latest documentation for your webhooks? We are preparing to integrate a new notification flow next quarter and want to make sure we follow best practices.
+
+Thanks,
+Elena
+Black Mesa Corp
+Email: elena.vance@blackmesa.org
