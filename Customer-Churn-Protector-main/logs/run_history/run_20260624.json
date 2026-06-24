@@ -1,13 +1,14 @@
 {
-  "run_at": "2026-06-24T15:00:06.977481",
+  "run_at": "2026-06-24T16:20:31.560183",
   "tickets_processed": 7,
   "escalations_drafted": 2,
   "watchlist_entries_logged": 1,
   "low_risk_processed": 4,
+  "resolutions_processed": 1,
   "details": [
     {
       "ticket_id": "ticket_001",
-      "sender_email": "rofopo1666@noproposal.com",
+      "sender_email": "alice.smith@acme-micro.com",
       "sentiment_verdict": {
         "sentiment_label": "calm",
         "frustration_score": 0,
@@ -18,18 +19,18 @@
         ]
       },
       "crm_record": {
-        "email": "rofopo1666@noproposal.com",
-        "company_name": "Unknown Entity",
-        "annual_revenue": 0,
-        "days_until_renewal": 999,
-        "account_manager_email": "support@revenueprotector.com",
-        "account_manager_name": "Unassigned Support Staff",
-        "tier": "Unknown"
+        "email": "alice.smith@acme-micro.com",
+        "company_name": "Acme Micro",
+        "annual_revenue": 1200,
+        "days_until_renewal": 250,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "SMB"
       },
       "risk_verdict": {
         "churn_risk_score": 7.0,
         "risk_tier": "LOW",
-        "rationale": "Account Unknown Entity represents low financial exposure (ARR $0) and ticket contains standard support request with no churn threat.",
+        "rationale": "Account Acme Micro represents low financial exposure (ARR $1,200) and ticket contains standard support request with no churn threat.",
         "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
       },
       "outbox_action": "none",

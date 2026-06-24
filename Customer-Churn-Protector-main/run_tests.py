@@ -11,6 +11,8 @@ PROCESSED_DIR = os.path.join(BASE_DIR, "data", "tickets", "processed")
 ESCALATIONS_DIR = os.path.join(BASE_DIR, "data", "outbox", "escalations")
 WATCHLIST_DIR = os.path.join(BASE_DIR, "data", "outbox", "watchlist")
 HISTORY_DIR = os.path.join(BASE_DIR, "logs", "run_history")
+OUTBOX_CUSTOMER_DIR = os.path.join(BASE_DIR, "data", "outbox_to_customer")
+MANAGER_RESOLUTIONS_DIR = os.path.join(BASE_DIR, "data", "manager_resolutions")
 
 # Ticket contents for restoring the demo/test environment
 TICKETS_SEED = {
@@ -142,6 +144,8 @@ def setup_environment():
     clean_directory(PROCESSED_DIR)
     clean_directory(ESCALATIONS_DIR)
     clean_directory(WATCHLIST_DIR)
+    clean_directory(OUTBOX_CUSTOMER_DIR)
+    clean_directory(MANAGER_RESOLUTIONS_DIR)
     
     # Ensure folders exist
     os.makedirs(INBOX_DIR, exist_ok=True)
@@ -149,6 +153,8 @@ def setup_environment():
     os.makedirs(ESCALATIONS_DIR, exist_ok=True)
     os.makedirs(WATCHLIST_DIR, exist_ok=True)
     os.makedirs(HISTORY_DIR, exist_ok=True)
+    os.makedirs(OUTBOX_CUSTOMER_DIR, exist_ok=True)
+    os.makedirs(MANAGER_RESOLUTIONS_DIR, exist_ok=True)
     
     # 2. Write seed tickets into inbox
     for filename, content in TICKETS_SEED.items():
@@ -157,6 +163,12 @@ def setup_environment():
             f.write(content.strip())
             
     print(f"[Test Runner] {len(TICKETS_SEED)} seed tickets written to inbox.", file=sys.stderr)
+    
+    # 3. Write a mock manager resolution note to test Phase 2
+    mock_resolution_path = os.path.join(MANAGER_RESOLUTIONS_DIR, "resolution_ticket_002.txt")
+    with open(mock_resolution_path, "w", encoding="utf-8") as f:
+        f.write("Refunded the credit card $50 fee discrepancy and fixed the platform API sync downtime.")
+    print(f"[Test Runner] Mock manager resolution written for ticket_002.", file=sys.stderr)
 
 def run_verifications():
     """Runs Orchestrator pipeline and validates output against rules."""
@@ -247,6 +259,45 @@ def run_verifications():
     print(f"Processed Tickets Relocated: {len(processed)}")
     for prc in processed:
         print(f" - {prc}")
+        
+    # 4. Phase 1 & 2 customer outbox verifications
+    acks = [f for f in os.listdir(OUTBOX_CUSTOMER_DIR) if f.startswith("ack_")]
+    resolutions = [f for f in os.listdir(OUTBOX_CUSTOMER_DIR) if f.startswith("resolution_")]
+    processed_mgr_res = []
+    mgr_res_processed_dir = os.path.join(MANAGER_RESOLUTIONS_DIR, "processed")
+    if os.path.exists(mgr_res_processed_dir):
+        processed_mgr_res = [f for f in os.listdir(mgr_res_processed_dir) if f.startswith("resolution_ticket_002")]
+        
+    print(f"\nDraft Acknowledgment Emails in Outbox: {len(acks)}")
+    for ack in acks:
+        print(f" - {ack}")
+        
+    print(f"Draft Resolution Emails in Outbox: {len(resolutions)}")
+    for res in resolutions:
+        print(f" - {res}")
+        
+    print(f"Archived Manager Resolutions: {len(processed_mgr_res)}")
+    for pmr in processed_mgr_res:
+        print(f" - {pmr}")
+        
+    # Assertions
+    if len(acks) != 7:
+        print(f"[\033[91mFAIL\033[0m] Expected 7 acknowledgments, found {len(acks)}")
+        success = False
+    else:
+        print("[\033[92mPASS\033[0m] 7 customer acknowledgments drafted successfully.")
+        
+    if len(resolutions) < 1:
+        print("[\033[91mFAIL\033[0m] Manager resolution email was not drafted.")
+        success = False
+    else:
+        print("[\033[92mPASS\033[0m] Customer resolution email drafted successfully.")
+        
+    if len(processed_mgr_res) < 1:
+        print("[\033[91mFAIL\033[0m] Manager resolution notes were not archived.")
+        success = False
+    else:
+        print("[\033[92mPASS\033[0m] Manager resolution notes archived successfully.")
         
     print("="*50)
     if success:

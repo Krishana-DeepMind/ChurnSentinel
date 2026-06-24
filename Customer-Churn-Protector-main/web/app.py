@@ -90,6 +90,61 @@ def uncomplete_ticket(ticket_id: str):
             return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
     return JSONResponse({"status": "success"})
 
+def get_customer_draft(ticket_id: str):
+    outbox_dir = os.path.join(BASE_DIR, "data", "outbox_to_customer")
+    if not os.path.exists(outbox_dir):
+        return None
+    try:
+        files = os.listdir(outbox_dir)
+    except Exception:
+        return None
+    
+    # Match files like ack_ticket_002_... or resolution_ticket_002_...
+    t_num = ticket_id.replace("ticket_", "")
+    matching = [f for f in files if (f.startswith(f"ack_ticket_{t_num}_") or f.startswith(f"resolution_ticket_{t_num}_")) and f.endswith(".txt")]
+    if not matching:
+        return None
+    
+    # Sort: resolution takes precedence over ack, and pick the newest one
+    matching.sort(key=lambda x: (1 if x.startswith("resolution_") else 0, x), reverse=True)
+    filename = matching[0]
+    file_path = os.path.join(outbox_dir, filename)
+    
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        headers = {}
+        body_lines = []
+        in_body = False
+        for line in content.splitlines():
+            if in_body:
+                body_lines.append(line)
+            elif not line.strip():
+                continue
+            elif line.startswith("To:"):
+                headers["to"] = line[3:].strip()
+            elif line.startswith("Subject:"):
+                headers["subject"] = line[8:].strip()
+            elif line.startswith("Body:"):
+                in_body = True
+            elif ":" in line:
+                key, val = line.split(":", 1)
+                headers[key.strip().lower()] = val.strip()
+            else:
+                in_body = True
+                body_lines.append(line)
+                
+        return {
+            "to": headers.get("to", ""),
+            "subject": headers.get("subject", ""),
+            "body": "\n".join(body_lines).strip(),
+            "filename": filename
+        }
+    except Exception as e:
+        print(f"Error parsing draft for {ticket_id}: {e}", file=sys.stderr)
+        return None
+
 @app.get("/", response_class=HTMLResponse)
 def read_dashboard(request: Request, process: str = None):
     # Run the pipeline if requested
@@ -127,59 +182,11 @@ def read_dashboard(request: Request, process: str = None):
         except Exception:
             pass
 
-    # 3. Read active escalations
-    escalations_dir = os.path.join(BASE_DIR, "data", "outbox", "escalations")
+    # 3 & 4. Escalations and Watchlist are populated dynamically from consolidated risk assessments (see below)
     escalations = []
     completed_escalations = []
-    if os.path.exists(escalations_dir):
-        try:
-            for filename in sorted(os.listdir(escalations_dir)):
-                if filename.endswith(".json"):
-                    file_path = os.path.join(escalations_dir, filename)
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        data["filename"] = filename
-                        t_id = data.get("ticket_id")
-                        if t_id in completed_set:
-                            completed_escalations.append(data)
-                        else:
-                            escalations.append(data)
-        except Exception as e:
-            print(f"Error loading escalations: {e}", file=sys.stderr)
-
-    # 4. Read active watchlist entries
-    watchlist_dir = os.path.join(BASE_DIR, "data", "outbox", "watchlist")
     watchlist = []
     completed_watchlist = []
-    if os.path.exists(watchlist_dir):
-        try:
-            for filename in sorted(os.listdir(watchlist_dir)):
-                if filename.endswith(".json"):
-                    file_path = os.path.join(watchlist_dir, filename)
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        data["filename"] = filename
-                        t_id = data.get("ticket_id")
-                        if t_id in completed_set:
-                            completed_watchlist.append(data)
-                        else:
-                            watchlist.append(data)
-        except Exception as e:
-            print(f"Error loading watchlist: {e}", file=sys.stderr)
-    # Map customer email address from CRM to each escalation and watchlist entry
-    email_map = get_crm_email_map()
-    for esc in escalations:
-        comp = esc.get("company_name", "").strip().lower()
-        esc["email"] = email_map.get(comp, "")
-    for esc in completed_escalations:
-        comp = esc.get("company_name", "").strip().lower()
-        esc["email"] = email_map.get(comp, "")
-    for wl in watchlist:
-        comp = wl.get("company_name", "").strip().lower()
-        wl["email"] = email_map.get(comp, "")
-    for wl in completed_watchlist:
-        comp = wl.get("company_name", "").strip().lower()
-        wl["email"] = email_map.get(comp, "")
 
     # 5. Revenue At Risk — computed after risk assessments are built (see below)
 
@@ -239,15 +246,27 @@ def read_dashboard(request: Request, process: str = None):
                 risk_assessments_map[t_id] = {
                     "ticket_id": t_id,
                     "customer": crm_rec.get("company_name", "Unknown"),
+                    "company_name": crm_rec.get("company_name", "Unknown"),
                     "email": det.get("sender_email", ""),
                     "arr": crm_rec.get("annual_revenue", 0),
+                    "annual_revenue": crm_rec.get("annual_revenue", 0),
                     "days_to_renewal": crm_rec.get("days_until_renewal", 0),
+                    "days_until_renewal": crm_rec.get("days_until_renewal", 0),
                     "sentiment": sentiment_v.get("sentiment_label", "N/A"),
                     "risk_tier": risk_v.get("risk_tier", "LOW"),
                     "score": risk_v.get("churn_risk_score", 0),
+                    "churn_risk_score": risk_v.get("churn_risk_score", 0),
                     "rationale": risk_v.get("rationale", ""),
+                    "recommended_action": risk_v.get("recommended_action", ""),
+                    "account_manager_email": crm_rec.get("account_manager_email", ""),
+                    "account_manager_name": crm_rec.get("account_manager_name", ""),
+                    "escalated_at": run_time,
+                    "logged_at": run_time,
                     "run_time": run_time
                 }
+                draft = get_customer_draft(t_id)
+                if draft:
+                    risk_assessments_map[t_id]["customer_draft"] = draft
 
     # Build final audit logs list, sorted newest day first
     audit_logs = []
@@ -279,6 +298,19 @@ def read_dashboard(request: Request, process: str = None):
             completed_assessments.append(item)
         else:
             risk_assessments.append(item)
+
+    # Populate escalations and watchlist from the latest consolidated risk assessments
+    for item in risk_assessments:
+        if item.get("risk_tier") == "CODE_RED":
+            escalations.append(item)
+        elif item.get("risk_tier") == "WATCH":
+            watchlist.append(item)
+
+    for item in completed_assessments:
+        if item.get("risk_tier") == "CODE_RED":
+            completed_escalations.append(item)
+        elif item.get("risk_tier") == "WATCH":
+            completed_watchlist.append(item)
 
     # 5. Compute Revenue At Risk — combines outbox files AND risk assessments
     crm_map = get_crm_revenue_map()
@@ -335,7 +367,7 @@ def read_dashboard(request: Request, process: str = None):
         "processed_count": processed_count,
         "escalations_count": len(escalations),
         "watchlist_count": len(watchlist),
-        "completed_count": len(completed_set),
+        "completed_count": len(completed_assessments),
         "revenue_at_risk": revenue_at_risk,
         "inbox_tickets": enhanced_inbox_tickets,
         "risk_assessments": risk_assessments,

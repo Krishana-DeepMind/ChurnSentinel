@@ -1,0 +1,15 @@
+To: bob.jones@megacorp.com
+Subject: Resolved: Support Ticket Resolution - MegaCorp Inc.
+
+Body:
+Dear MegaCorp Inc. Team,
+
+We are writing to let you know that the issue you reported has been successfully resolved.
+
+Resolution Details:
+Refunded the credit card $50 fee discrepancy and fixed the platform API sync downtime.
+
+We sincerely appreciate your patience and partnership as we worked through this. Please let us know if there is anything else we can do to assist you or if you have any follow-up questions.
+
+Warm regards,
+Customer Support & Account Management

@@ -1,5 +1,5 @@
 Subject: Small layout issue on dashboard
-From: Alice Smith <rofopo1666@noproposal.com>
+From: Alice Smith <alice.smith@acme-micro.com>
 Date: Mon, 22 Jun 2026 14:22:10 -0400
 
 Hi Support Team,
@@ -11,4 +11,4 @@ It's not blocking our work or anything, but it looks a bit messy. Could you plea
 Thanks,
 Alice Smith
 Acme Micro
-Email: rofopo1666@noproposal.com
+Email: alice.smith@acme-micro.com

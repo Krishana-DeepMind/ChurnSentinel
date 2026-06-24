@@ -132,6 +132,24 @@ class OrchestratorAgent:
                 print(f"[{ticket_id}] LOW risk tier. No outbox action taken.", file=sys.stderr)
                 counts["low_risk_processed"] += 1
                 
+            # Phase 1: Draft Customer Acknowledgment
+            from agents.llm_client import simulate_acknowledgment_generation
+            print(f"[{ticket_id}] Generating customized customer acknowledgment...", file=sys.stderr)
+            ack_json = simulate_acknowledgment_generation(
+                sentiment_label=sentiment_verdict["sentiment_label"],
+                frustration_score=sentiment_verdict["frustration_score"],
+                company_name=crm_record["company_name"]
+            )
+            ack_data = json.loads(ack_json)
+            ack_res = server.draft_customer_acknowledgment(
+                ticket_id=ticket_id,
+                customer_email=email,
+                subject=ack_data["subject"],
+                body=ack_data["body"]
+            )
+            if ack_res["success"]:
+                print(f"[{ticket_id}] Customer acknowledgment drafted: {ack_res['file_path']}", file=sys.stderr)
+
             # Step 5: Mark processed LAST in all cases
             print(f"[{ticket_id}] Relocating processed ticket to archive...", file=sys.stderr)
             processed_res = server.mark_ticket_processed(ticket_id)
@@ -150,6 +168,43 @@ class OrchestratorAgent:
                 "processed_path": new_ticket_path
             })
             
+        # Phase 2: Process Manager Resolutions
+        print("[Orchestrator] Checking for pending manager resolutions...", file=sys.stderr)
+        pending_resolutions = server.read_pending_resolutions()
+        resolutions_processed = 0
+        if pending_resolutions:
+            print(f"[Orchestrator] Found {len(pending_resolutions)} pending manager resolution(s).", file=sys.stderr)
+            from agents.llm_client import simulate_resolution_generation
+            for res in pending_resolutions:
+                res_ticket_id = res["ticket_id"]
+                res_notes = res["notes"]
+                res_email = res["customer_email"]
+                res_file = res["file_path"]
+                
+                # Query CRM for company name
+                res_company_name = "Customer"
+                if res_email:
+                    crm_lookup = server.query_crm_by_email(res_email)
+                    if crm_lookup["found"]:
+                        res_company_name = crm_lookup["record"]["company_name"]
+                
+                print(f"[{res_ticket_id}] Translating manager notes to customer resolution email...", file=sys.stderr)
+                translated_json = simulate_resolution_generation(res_notes, res_company_name)
+                translated_data = json.loads(translated_json)
+                
+                res_res = server.draft_customer_resolution(
+                    ticket_id=res_ticket_id,
+                    customer_email=res_email or "customer@revenueprotector.com",
+                    subject=translated_data["subject"],
+                    body=translated_data["body"],
+                    resolution_file_path=res_file
+                )
+                if res_res["success"]:
+                    resolutions_processed += 1
+                    print(f"[{res_ticket_id}] Resolution email drafted and manager file archived.", file=sys.stderr)
+        else:
+            print("[Orchestrator] No pending manager resolutions found.", file=sys.stderr)
+
         # 6. Save Run History
         os.makedirs(self.run_history_dir, exist_ok=True)
         date_str = datetime.now().strftime("%Y%m%d")
@@ -189,6 +244,7 @@ class OrchestratorAgent:
                 "escalations_drafted": counts["escalations_drafted"],
                 "watchlist_entries_logged": counts["watchlist_entries_logged"],
                 "low_risk_processed": counts["low_risk_processed"],
+                "resolutions_processed": resolutions_processed,
                 "details": run_details
             }
         else:
@@ -203,6 +259,7 @@ class OrchestratorAgent:
             daily_summary["escalations_drafted"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "CODE_RED")
             daily_summary["watchlist_entries_logged"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "WATCH")
             daily_summary["low_risk_processed"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "LOW")
+            daily_summary["resolutions_processed"] = daily_summary.get("resolutions_processed", 0) + resolutions_processed
             
         try:
             with open(history_file, "w", encoding="utf-8") as f:

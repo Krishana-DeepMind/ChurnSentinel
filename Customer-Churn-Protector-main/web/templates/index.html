@@ -590,9 +590,15 @@
                             </td>
                             <td>
                                 {% if item.email %}
-                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}&su=Re:+Churn+Risk+Assessment+-+{{ item.customer | urlencode }}&body=Hi+{{ item.customer | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="text-indigo" style="color: #818cf8; text-decoration: underline;">
-                                    {{ item.email }}
-                                </a>
+                                    {% if item.customer_draft %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.customer_draft.to | urlencode }}&su={{ item.customer_draft.subject | urlencode }}&body={{ item.customer_draft.body | urlencode }}" target="_blank" class="text-indigo" style="color: #818cf8; text-decoration: underline;" title="Draft file: {{ item.customer_draft.filename }}">
+                                        {{ item.email }} <i class="bi bi-file-earmark-text ms-1" title="Has drafted customer email"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}&su=Re:+Churn+Risk+Assessment+-+{{ item.customer | urlencode }}&body=Hi+{{ item.customer | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="text-indigo" style="color: #818cf8; text-decoration: underline;">
+                                        {{ item.email }}
+                                    </a>
+                                    {% endif %}
                                 {% else %}
                                 <span class="text-secondary-custom">-</span>
                                 {% endif %}
@@ -699,9 +705,15 @@
                         </div>
                         <div class="mt-3 d-flex justify-content-end gap-2">
                             {% if esc.email %}
-                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ esc.email }}&su=Re:+Churn+Risk+Assessment+-+{{ esc.company_name | urlencode }}&body=Hi+{{ esc.company_name | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;">
-                                <i class="bi bi-reply-fill me-1"></i>Reply (Gmail)
-                            </a>
+                                {% if esc.customer_draft %}
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ esc.customer_draft.to | urlencode }}&su={{ esc.customer_draft.subject | urlencode }}&body={{ esc.customer_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ esc.customer_draft.filename }}">
+                                    <i class="bi bi-reply-fill me-1"></i>Reply (Gmail - Custom Draft)
+                                </a>
+                                {% else %}
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ esc.email }}&su=Re:+Churn+Risk+Assessment+-+{{ esc.company_name | urlencode }}&body=Hi+{{ esc.company_name | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;">
+                                    <i class="bi bi-reply-fill me-1"></i>Reply (Gmail)
+                                </a>
+                                {% endif %}
                             {% endif %}
                             <button class="btn btn-sm btn-outline-success btn-complete" data-ticket-id="{{ esc.ticket_id }}" style="border-radius: 8px;">
                                 <i class="bi bi-check-lg me-1"></i>Complete
@@ -748,9 +760,15 @@
                             <span style="font-size: 0.75rem;">Logged at: {{ wl.logged_at[:19] | replace('T', ' ') }}</span>
                             <div class="d-flex gap-2">
                                 {% if wl.email %}
-                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ wl.email }}&su=Re:+Churn+Risk+Assessment+-+{{ wl.company_name | urlencode }}&body=Hi+{{ wl.company_name | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;">
-                                    <i class="bi bi-reply-fill me-1"></i>Reply (Gmail)
-                                </a>
+                                    {% if wl.customer_draft %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ wl.customer_draft.to | urlencode }}&su={{ wl.customer_draft.subject | urlencode }}&body={{ wl.customer_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ wl.customer_draft.filename }}">
+                                        <i class="bi bi-reply-fill me-1"></i>Reply (Gmail - Custom Draft)
+                                    </a>
+                                    {% else %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ wl.email }}&su=Re:+Churn+Risk+Assessment+-+{{ wl.company_name | urlencode }}&body=Hi+{{ wl.company_name | urlencode }}+team,%0A%0AWe+received+your+ticket+regarding+your+platform+experience..." target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;">
+                                        <i class="bi bi-reply-fill me-1"></i>Reply (Gmail)
+                                    </a>
+                                    {% endif %}
                                 {% endif %}
                                 <button class="btn btn-sm btn-outline-success btn-complete" data-ticket-id="{{ wl.ticket_id }}" style="border-radius: 8px;">
                                     <i class="bi bi-check-lg me-1"></i>Complete
@@ -886,9 +904,13 @@
                                     <div class="small text-secondary-custom"><code class="text-indigo" style="color: #818cf8;">{{ item.ticket_id }}</code></div>
                                 </td>
                                 <td>
-                                     {% if item.email %}
-                                     <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}" target="_blank" class="text-secondary-custom small"><i class="bi bi-envelope me-1"></i>{{ item.email }}</a>
-                                     {% else %}
+                                      {% if item.email %}
+                                          {% if item.customer_draft %}
+                                          <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.customer_draft.to | urlencode }}&su={{ item.customer_draft.subject | urlencode }}&body={{ item.customer_draft.body | urlencode }}" target="_blank" class="text-secondary-custom small" title="Draft file: {{ item.customer_draft.filename }}"><i class="bi bi-envelope me-1"></i>{{ item.email }} <i class="bi bi-file-earmark-text ms-1" title="Has drafted customer email"></i></a>
+                                          {% else %}
+                                          <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}" target="_blank" class="text-secondary-custom small"><i class="bi bi-envelope me-1"></i>{{ item.email }}</a>
+                                          {% endif %}
+                                      {% else %}
                                      <span class="text-secondary-custom">-</span>
                                      {% endif %}
                                  </td>

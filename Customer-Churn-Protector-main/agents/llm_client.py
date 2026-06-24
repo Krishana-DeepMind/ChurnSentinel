@@ -237,3 +237,72 @@ def simulate_risk_assessment(system_prompt, sentiment_verdict_json, crm_record_j
     }
     
     return json.dumps(response)
+
+def simulate_acknowledgment_generation(sentiment_label, frustration_score, company_name):
+    """
+    Simulates generating a customer acknowledgment email with tone customized to sentiment.
+    """
+    # Check if high frustration or angry/hostile or high risk
+    is_high_risk = sentiment_label in ["angry", "hostile"] or frustration_score >= 50
+    
+    if is_high_risk:
+        subject = f"URGENT: We have received your support request - {company_name}"
+        body = (
+            f"Dear {company_name} Team,\n\n"
+            f"Thank you for contacting our support team. We sincerely apologize for the frustration "
+            f"and difficulties this situation has caused. We completely understand the urgency and "
+            f"seriousness of the issues you reported.\n\n"
+            f"Please be assured that we have escalated this ticket directly to your dedicated Account Manager "
+            f"and our senior technical engineering team for immediate, high-priority investigation. "
+            f"We are actively working to resolve this as quickly as possible and will provide you with "
+            f"a direct status update shortly.\n\n"
+            f"Sincerely,\n"
+            f"Customer Success & Escalation Team"
+        )
+    else:
+        subject = f"Receipt Confirmation: Support Request Received - {company_name}"
+        body = (
+            f"Dear {company_name} Team,\n\n"
+            f"Thank you for reaching out to us. We have received your support ticket regarding your recent query "
+            f"and have added it to our technical queue.\n\n"
+            f"Our standard support specialists are reviewing the details and will follow up with you as soon as "
+            f"they have completed their initial assessment.\n\n"
+            f"Best regards,\n"
+            f"Customer Support Team"
+        )
+        
+    return json.dumps({
+        "subject": subject,
+        "body": body
+    })
+
+def simulate_resolution_generation(manager_notes, company_name):
+    """
+    Simulates translating technical manager resolution notes into a polite, warm, and professional email.
+    """
+    subject = f"Resolved: Support Ticket Resolution - {company_name}"
+    
+    # Capitalize first word / formatting of notes
+    notes_formatted = manager_notes.strip()
+    if notes_formatted:
+        if not notes_formatted.endswith(('.', '!', '?')):
+            notes_formatted += '.'
+    else:
+        notes_formatted = "The issue has been resolved by our engineering team."
+        
+    body = (
+        f"Dear {company_name} Team,\n\n"
+        f"We are writing to let you know that the issue you reported has been successfully resolved.\n\n"
+        f"Resolution Details:\n"
+        f"{notes_formatted}\n\n"
+        f"We sincerely appreciate your patience and partnership as we worked through this. Please let us "
+        f"know if there is anything else we can do to assist you or if you have any follow-up questions.\n\n"
+        f"Warm regards,\n"
+        f"Customer Support & Account Management"
+    )
+    
+    return json.dumps({
+        "subject": subject,
+        "body": body
+    })
+
