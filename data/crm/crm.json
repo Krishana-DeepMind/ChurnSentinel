@@ -1,0 +1,65 @@
+[
+  {
+    "email": "alice.smith@acme-micro.com",
+    "company_name": "Acme Micro",
+    "annual_revenue": 1200,
+    "days_until_renewal": 250,
+    "account_manager_email": "am.steve@revenueprotector.com",
+    "account_manager_name": "Steve Rogers",
+    "tier": "SMB"
+  },
+  {
+    "email": "bob.jones@megacorp.com",
+    "company_name": "MegaCorp Inc.",
+    "annual_revenue": 250000,
+    "days_until_renewal": 12,
+    "account_manager_email": "am.tony@revenueprotector.com",
+    "account_manager_name": "Tony Stark",
+    "tier": "Enterprise"
+  },
+  {
+    "email": "charlie.brown@mediumbiz.org",
+    "company_name": "MediumBiz LLC",
+    "annual_revenue": 450000,
+    "days_until_renewal": 60,
+    "account_manager_email": "am.natasha@revenueprotector.com",
+    "account_manager_name": "Natasha Romanoff",
+    "tier": "Enterprise"
+  },
+  {
+    "email": "david.miller@microscale.net",
+    "company_name": "MicroScale Net",
+    "annual_revenue": 2500,
+    "days_until_renewal": 180,
+    "account_manager_email": "am.steve@revenueprotector.com",
+    "account_manager_name": "Steve Rogers",
+    "tier": "SMB"
+  },
+  {
+    "email": "elena.vance@blackmesa.org",
+    "company_name": "Black Mesa Corp",
+    "annual_revenue": 150000,
+    "days_until_renewal": 90,
+    "account_manager_email": "am.natasha@revenueprotector.com",
+    "account_manager_name": "Natasha Romanoff",
+    "tier": "Enterprise"
+  },
+  {
+    "email": "fiona.gallagher@southside.co",
+    "company_name": "Southside Goods",
+    "annual_revenue": 12000,
+    "days_until_renewal": 5,
+    "account_manager_email": "am.tony@revenueprotector.com",
+    "account_manager_name": "Tony Stark",
+    "tier": "Mid-Market"
+  },
+  {
+    "email": "gordon.freeman@aperturelabs.com",
+    "company_name": "Aperture Labs",
+    "annual_revenue": 85000,
+    "days_until_renewal": -10,
+    "account_manager_email": "am.steve@revenueprotector.com",
+    "account_manager_name": "Steve Rogers",
+    "tier": "Mid-Market"
+  }
+]

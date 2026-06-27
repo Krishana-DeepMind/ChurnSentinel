@@ -1,0 +1,230 @@
+{
+  "run_at": "2026-06-26T16:48:58.885506",
+  "tickets_processed": 7,
+  "escalations_drafted": 2,
+  "watchlist_entries_logged": 1,
+  "low_risk_processed": 4,
+  "resolutions_processed": 3,
+  "details": [
+    {
+      "ticket_id": "ticket_001",
+      "sender_email": "alice.smith@acme-micro.com",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 0,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Hope you're having a good week",
+          "I just wanted to report a minor thing we noticed on our company dashboard"
+        ]
+      },
+      "crm_record": {
+        "email": "alice.smith@acme-micro.com",
+        "company_name": "Acme Micro",
+        "annual_revenue": 1200,
+        "days_until_renewal": 250,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "SMB"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 7.0,
+        "risk_tier": "LOW",
+        "rationale": "Account Acme Micro represents low financial exposure (ARR $1,200) and ticket contains standard support request with no churn threat.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_001.txt"
+    },
+    {
+      "ticket_id": "ticket_002",
+      "sender_email": "bob.jones@megacorp.com",
+      "sentiment_verdict": {
+        "sentiment_label": "angry",
+        "frustration_score": 100,
+        "churn_signals_detected": true,
+        "key_phrases": [
+          "Subject: CRITICAL: Unresolved downtime and serious platform issues",
+          "I am writing this out of sheer frustration",
+          "Frankly, this level of service is completely unacceptable"
+        ]
+      },
+      "crm_record": {
+        "email": "bob.jones@megacorp.com",
+        "company_name": "MegaCorp Inc.",
+        "annual_revenue": 250000,
+        "days_until_renewal": 12,
+        "account_manager_email": "am.tony@revenueprotector.com",
+        "account_manager_name": "Tony Stark",
+        "tier": "Enterprise"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 100.0,
+        "risk_tier": "CODE_RED",
+        "rationale": "High revenue account (MegaCorp Inc., ARR $250,000) is within imminent renewal window (12 days) and exhibiting explicit dissatisfaction or churn indicators.",
+        "recommended_action": "Escalate immediately to Account Manager Tony Stark (am.tony@revenueprotector.com). Conduct a wellness review and offer renewal concessions."
+      },
+      "outbox_action": "draft_account_manager_escalation",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_002.txt"
+    },
+    {
+      "ticket_id": "ticket_003",
+      "sender_email": "charlie.brown@mediumbiz.org",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 10,
+        "churn_signals_detected": true,
+        "key_phrases": [
+          "Subject: Inquiry regarding contract terms and offboarding process",
+          "The notice period required for non-renewal",
+          "The exact termination date if we opt out of the renewal"
+        ]
+      },
+      "crm_record": {
+        "email": "charlie.brown@mediumbiz.org",
+        "company_name": "MediumBiz LLC",
+        "annual_revenue": 450000,
+        "days_until_renewal": 60,
+        "account_manager_email": "am.natasha@revenueprotector.com",
+        "account_manager_name": "Natasha Romanoff",
+        "tier": "Enterprise"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 88.0,
+        "risk_tier": "CODE_RED",
+        "rationale": "High revenue account (MediumBiz LLC, ARR $450,000) is within imminent renewal window (60 days) and exhibiting explicit dissatisfaction or churn indicators.",
+        "recommended_action": "Escalate immediately to Account Manager Natasha Romanoff (am.natasha@revenueprotector.com). Conduct a wellness review and offer renewal concessions."
+      },
+      "outbox_action": "draft_account_manager_escalation",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_003.txt"
+    },
+    {
+      "ticket_id": "ticket_004",
+      "sender_email": "david.miller@microscale.net",
+      "sentiment_verdict": {
+        "sentiment_label": "hostile",
+        "frustration_score": 100,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: YOU OVERCHARGED ME",
+          "I AM ABSOLUTELY FURIOUS",
+          "THIS IS A HORRIBLE WAY TO RUN A COMPANY AND I WILL NOT TOLERATE BEING RIPPED OFF"
+        ]
+      },
+      "crm_record": {
+        "email": "david.miller@microscale.net",
+        "company_name": "MicroScale Net",
+        "annual_revenue": 2500,
+        "days_until_renewal": 180,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "SMB"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 45,
+        "risk_tier": "WATCH",
+        "rationale": "Client MicroScale Net displays a high level of frustration (score 100/100), but has a smaller contract value ($2,500) or a distant renewal date (180 days).",
+        "recommended_action": "Assign to support queue with high priority. Log on watchlist and address the technical or billing complaint promptly to prevent escalation."
+      },
+      "outbox_action": "log_watchlist_entry",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_004.txt"
+    },
+    {
+      "ticket_id": "ticket_005",
+      "sender_email": "elena.vance@blackmesa.org",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 10,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Query about API endpoints documentation",
+          "From: Elena Vance <elena"
+        ]
+      },
+      "crm_record": {
+        "email": "elena.vance@blackmesa.org",
+        "company_name": "Black Mesa Corp",
+        "annual_revenue": 150000,
+        "days_until_renewal": 90,
+        "account_manager_email": "am.natasha@revenueprotector.com",
+        "account_manager_name": "Natasha Romanoff",
+        "tier": "Enterprise"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Black Mesa Corp has long-term contract stability (90 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_005.txt"
+    },
+    {
+      "ticket_id": "ticket_006",
+      "sender_email": "fiona.gallagher@southside.co",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 33,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Account lock out",
+          "Renewal issues"
+        ]
+      },
+      "crm_record": {
+        "email": "fiona.gallagher@southside.co",
+        "company_name": "Southside Goods",
+        "annual_revenue": 12000,
+        "days_until_renewal": 5,
+        "account_manager_email": "am.tony@revenueprotector.com",
+        "account_manager_name": "Tony Stark",
+        "tier": "Mid-Market"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Southside Goods has long-term contract stability (5 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_006.txt"
+    },
+    {
+      "ticket_id": "ticket_007",
+      "sender_email": "gordon.freeman@aperturelabs.com",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 10,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Serious data sync lag",
+          "From: Gordon Freeman <gordon"
+        ]
+      },
+      "crm_record": {
+        "email": "gordon.freeman@aperturelabs.com",
+        "company_name": "Aperture Labs",
+        "annual_revenue": 85000,
+        "days_until_renewal": -10,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "Mid-Market"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Aperture Labs has long-term contract stability (-10 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_007.txt"
+    }
+  ]
+}

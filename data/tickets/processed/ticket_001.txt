@@ -1,0 +1,14 @@
+Subject: Small layout issue on dashboard
+From: Alice Smith <alice.smith@acme-micro.com>
+Date: Mon, 22 Jun 2026 14:22:10 -0400
+
+Hi Support Team,
+
+Hope you're having a good week. I just wanted to report a minor thing we noticed on our company dashboard. The "Export CSV" button appears to be slightly misaligned on mobile screens, overlapping with the date picker.
+
+It's not blocking our work or anything, but it looks a bit messy. Could you please pass this on to your design or engineering team to take a look when they have a moment?
+
+Thanks,
+Alice Smith
+Acme Micro
+Email: alice.smith@acme-micro.com

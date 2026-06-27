@@ -1,0 +1,12 @@
+To: bob.jones@megacorp.com
+Subject: Resolved: Support Ticket - MegaCorp Inc.
+
+Body:
+Dear MegaCorp Inc. Team,
+
+We are happy to inform you that your issue regarding 'Importance: High' has been successfully resolved.
+
+We sincerely appreciate your patience as our team worked through this. Please let us know if you have any further questions or if there is anything else we can do to assist you.
+
+Warm regards,
+Customer Support & Success Team

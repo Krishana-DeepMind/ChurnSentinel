@@ -1,0 +1,15 @@
+To: alice.smith@acme-micro.com
+Subject: We have received your inquiry - Acme Micro Support Ticket Confirmation
+
+Body:
+Dear Customer,
+
+Thank you for reaching out to Acme Micro. This email confirms that we have successfully received your inquiry.
+
+Our support team is currently reviewing the details of your request. A representative will get back to you shortly with an update. If you have any additional information or files to add, please feel free to reply directly to this email.
+
+We appreciate your patience and look forward to assisting you.
+
+Best regards,
+
+Acme Micro Customer Success Team
