@@ -11,6 +11,9 @@ PROCESSED_DIR = os.path.join(BASE_DIR, "data", "tickets", "processed")
 ESCALATIONS_DIR = os.path.join(BASE_DIR, "data", "outbox", "escalations")
 WATCHLIST_DIR = os.path.join(BASE_DIR, "data", "outbox", "watchlist")
 HISTORY_DIR = os.path.join(BASE_DIR, "logs", "run_history")
+OUTBOX_CUSTOMER_DIR = os.path.join(BASE_DIR, "data", "outbox_to_customer")
+COMPLETION_EMAIL_DIR = os.path.join(BASE_DIR, "data", "completion_email")
+
 
 # Ticket contents for restoring the demo/test environment
 TICKETS_SEED = {
@@ -81,7 +84,43 @@ WHY DID THIS HAPPEN? I DEMAND A WRITTEN EXPLANATION AND AN IMMEDIATE CREDIT REFU
 
 David Miller
 MicroScale Net
-david.miller@microscale.net"""
+david.miller@microscale.net""",
+
+    "ticket_005.txt": """Subject: Query about API endpoints documentation
+From: Elena Vance <elena.vance@blackmesa.org>
+Date: Mon, 22 Jun 2026 10:00:00 -0400
+
+Hi, 
+
+Could you please point me to the latest documentation for your webhooks? We are preparing to integrate a new notification flow next quarter and want to make sure we follow best practices.
+
+Thanks,
+Elena
+Black Mesa Corp
+Email: elena.vance@blackmesa.org""",
+
+    "ticket_006.txt": """Subject: Account lock out! Renewal issues?
+From: Fiona Gallagher <fiona.gallagher@southside.co>
+Date: Tue, 23 Jun 2026 15:30:00 -0400
+Importance: High
+
+URGENT: I cannot log into my admin dashboard! My account page says my renewal is due today but we paid last week. We need this resolved immediately as we cannot process our client orders without dashboard access. Please call me!
+
+Fiona Gallagher
+Southside Goods
+Email: fiona.gallagher@southside.co""",
+
+    "ticket_007.txt": """Subject: Serious data sync lag
+From: Gordon Freeman <gordon.freeman@aperturelabs.com>
+Date: Tue, 23 Jun 2026 14:00:00 -0400
+
+Hello,
+
+We are noticing a delay of up to 45 minutes in database replication sync on our staging environment. Since we are already past our renewal date, our management is hesitant to finalize the next period contract until we have a clear explanation of this lag and a guarantee of resolution.
+
+Gordon Freeman
+Research Lead, Aperture Labs
+Email: gordon.freeman@aperturelabs.com"""
 }
 
 def clean_directory(path):
@@ -106,13 +145,26 @@ def setup_environment():
     clean_directory(PROCESSED_DIR)
     clean_directory(ESCALATIONS_DIR)
     clean_directory(WATCHLIST_DIR)
+    clean_directory(OUTBOX_CUSTOMER_DIR)
+    clean_directory(COMPLETION_EMAIL_DIR)
     
+    # Reset completed.json
+    completed_json_path = os.path.join(BASE_DIR, "data", "completed.json")
+    if os.path.exists(completed_json_path):
+        try:
+            os.remove(completed_json_path)
+            print("[Test Runner] Cleaned completed.json", file=sys.stderr)
+        except Exception as e:
+            print(f"[Test Runner] Error cleaning completed.json: {e}", file=sys.stderr)
+            
     # Ensure folders exist
     os.makedirs(INBOX_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     os.makedirs(ESCALATIONS_DIR, exist_ok=True)
     os.makedirs(WATCHLIST_DIR, exist_ok=True)
     os.makedirs(HISTORY_DIR, exist_ok=True)
+    os.makedirs(OUTBOX_CUSTOMER_DIR, exist_ok=True)
+    os.makedirs(COMPLETION_EMAIL_DIR, exist_ok=True)
     
     # 2. Write seed tickets into inbox
     for filename, content in TICKETS_SEED.items():
@@ -120,7 +172,7 @@ def setup_environment():
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content.strip())
             
-    print("[Test Runner] 4 seed tickets written to inbox.", file=sys.stderr)
+    print(f"[Test Runner] {len(TICKETS_SEED)} seed tickets written to inbox.", file=sys.stderr)
 
 def run_verifications():
     """Runs Orchestrator pipeline and validates output against rules."""
@@ -212,6 +264,38 @@ def run_verifications():
     for prc in processed:
         print(f" - {prc}")
         
+    # 4. Phase 1 & 3 customer outbox verifications
+    acks = [f for f in os.listdir(OUTBOX_CUSTOMER_DIR) if f.startswith("ack_")]
+    print(f"\nDraft Acknowledgment Emails in Outbox: {len(acks)}")
+    for ack in acks:
+        print(f" - {ack}")
+        
+    # Trigger ticket completion testing
+    print("\n[Test Runner] Triggering manager ticket completion...", file=sys.stderr)
+    from web.app import complete_ticket
+    complete_ticket("ticket_002")
+    
+    completions = []
+    if os.path.exists(COMPLETION_EMAIL_DIR):
+        completions = [f for f in os.listdir(COMPLETION_EMAIL_DIR) if f.startswith("completion_ticket_002")]
+        
+    print(f"Draft Completion Emails: {len(completions)}")
+    for comp in completions:
+        print(f" - {comp}")
+        
+    # Assertions
+    if len(acks) != 7:
+        print(f"[\033[91mFAIL\033[0m] Expected 7 acknowledgments, found {len(acks)}")
+        success = False
+    else:
+        print("[\033[92mPASS\033[0m] 7 customer acknowledgments drafted successfully.")
+        
+    if len(completions) < 1:
+        print("[\033[91mFAIL\033[0m] Customer completion email was not drafted.")
+        success = False
+    else:
+        print("[\033[92mPASS\033[0m] Customer completion email drafted successfully.")
+        
     print("="*50)
     if success:
         print("\033[92mALL TESTS PASSED SUCCESSFULLY!\033[0m")
@@ -224,3 +308,4 @@ if __name__ == "__main__":
     setup_environment()
     exit_code = run_verifications()
     sys.exit(exit_code)
+

@@ -132,6 +132,24 @@ class OrchestratorAgent:
                 print(f"[{ticket_id}] LOW risk tier. No outbox action taken.", file=sys.stderr)
                 counts["low_risk_processed"] += 1
                 
+            # Phase 1: Draft Customer Acknowledgment
+            from agents.llm_client import simulate_acknowledgment_generation
+            print(f"[{ticket_id}] Generating customized customer acknowledgment...", file=sys.stderr)
+            ack_json = simulate_acknowledgment_generation(
+                sentiment_label=sentiment_verdict["sentiment_label"],
+                frustration_score=sentiment_verdict["frustration_score"],
+                company_name=crm_record["company_name"]
+            )
+            ack_data = json.loads(ack_json)
+            ack_res = server.draft_customer_acknowledgment(
+                ticket_id=ticket_id,
+                customer_email=email,
+                subject=ack_data["subject"],
+                body=ack_data["body"]
+            )
+            if ack_res["success"]:
+                print(f"[{ticket_id}] Customer acknowledgment drafted: {ack_res['file_path']}", file=sys.stderr)
+
             # Step 5: Mark processed LAST in all cases
             print(f"[{ticket_id}] Relocating processed ticket to archive...", file=sys.stderr)
             processed_res = server.mark_ticket_processed(ticket_id)
@@ -146,30 +164,69 @@ class OrchestratorAgent:
                 "crm_record": crm_record,
                 "risk_verdict": risk_verdict,
                 "outbox_action": outbox_action,
-                "outbox_file_path": outbox_file_path,
                 "processed_success": processed_success,
                 "processed_path": new_ticket_path
             })
             
         # 6. Save Run History
         os.makedirs(self.run_history_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        history_file = os.path.join(self.run_history_dir, f"run_{timestamp}.json")
+        date_str = datetime.now().strftime("%Y%m%d")
+        history_file = os.path.join(self.run_history_dir, f"run_{date_str}.json")
         
-        run_summary = {
-            "run_at": datetime.now().isoformat(),
-            "tickets_processed": len(tickets),
-            "escalations_drafted": counts["escalations_drafted"],
-            "watchlist_entries_logged": counts["watchlist_entries_logged"],
-            "low_risk_processed": counts["low_risk_processed"],
-            "details": run_details
-        }
-        
+        daily_summary = None
+        if os.path.exists(history_file):
+            try:
+                with open(history_file, "r", encoding="utf-8") as f:
+                    raw_data = json.load(f)
+                    if isinstance(raw_data, list):
+                        consolidated_details = {}
+                        for run_item in raw_data:
+                            for det in run_item.get("details", []):
+                                t_id = det.get("ticket_id")
+                                if t_id:
+                                    consolidated_details[t_id] = det
+                        details_list = list(consolidated_details.values())
+                        daily_summary = {
+                            "run_at": datetime.now().isoformat(),
+                            "tickets_processed": len(details_list),
+                            "escalations_drafted": sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "CODE_RED"),
+                            "watchlist_entries_logged": sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "WATCH"),
+                            "low_risk_processed": sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "LOW"),
+                            "details": details_list
+                        }
+                    else:
+                        daily_summary = raw_data
+            except Exception as e:
+                print(f"Error loading existing run history: {e}", file=sys.stderr)
+                daily_summary = None
+                
+        if daily_summary is None:
+            daily_summary = {
+                "run_at": datetime.now().isoformat(),
+                "tickets_processed": len(tickets),
+                "escalations_drafted": counts["escalations_drafted"],
+                "watchlist_entries_logged": counts["watchlist_entries_logged"],
+                "low_risk_processed": counts["low_risk_processed"],
+                "details": run_details
+            }
+        else:
+            details_map = {det["ticket_id"]: det for det in daily_summary.get("details", [])}
+            for det in run_details:
+                details_map[det["ticket_id"]] = det
+                
+            details_list = list(details_map.values())
+            daily_summary["run_at"] = datetime.now().isoformat()
+            daily_summary["details"] = details_list
+            daily_summary["tickets_processed"] = len(details_list)
+            daily_summary["escalations_drafted"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "CODE_RED")
+            daily_summary["watchlist_entries_logged"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "WATCH")
+            daily_summary["low_risk_processed"] = sum(1 for d in details_list if d.get("risk_verdict", {}).get("risk_tier") == "LOW")
+            
         try:
             with open(history_file, "w", encoding="utf-8") as f:
-                json.dump(run_summary, f, indent=2)
+                json.dump(daily_summary, f, indent=2)
             print(f"\n[Orchestrator] Run history saved to: {history_file}", file=sys.stderr)
         except Exception as e:
             print(f"\n[Orchestrator] Error saving run history: {e}", file=sys.stderr)
             
-        return run_summary
+        return daily_summary

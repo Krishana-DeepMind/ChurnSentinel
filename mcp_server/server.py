@@ -162,6 +162,31 @@ def mark_ticket_processed(ticket_id):
         print(f"Error marking ticket processed: {e}", file=sys.stderr)
         return {"success": False, "new_path": ""}
 
+# New local directory for simulated customer outbox
+OUTBOX_CUSTOMER_DIR = os.path.join(BASE_DIR, "data", "outbox_to_customer")
+
+def draft_customer_acknowledgment(ticket_id, customer_email, subject, body):
+    """
+    Tool 4.6: Writes a customized acknowledgment email draft to data/outbox_to_customer/.
+    Returns: { "success": bool, "file_path": string }
+    """
+    if not os.path.exists(OUTBOX_CUSTOMER_DIR):
+        os.makedirs(OUTBOX_CUSTOMER_DIR, exist_ok=True)
+        
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    filename = f"ack_{ticket_id}_{timestamp}.txt"
+    file_path = os.path.join(OUTBOX_CUSTOMER_DIR, filename)
+    
+    content = f"To: {customer_email}\nSubject: {subject}\n\nBody:\n{body}\n"
+    
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return {"success": True, "file_path": file_path}
+    except Exception as e:
+        print(f"Error drafting customer acknowledgment: {e}", file=sys.stderr)
+        return {"success": False, "file_path": ""}
+
 def run_jsonrpc_server():
     """
     Implements a simple JSON-RPC loop over stdin/stdout.
@@ -209,6 +234,13 @@ def run_jsonrpc_server():
                 )
             elif method == "mark_ticket_processed":
                 res_val = mark_ticket_processed(params.get("ticket_id"))
+            elif method == "draft_customer_acknowledgment":
+                res_val = draft_customer_acknowledgment(
+                    ticket_id=params.get("ticket_id"),
+                    customer_email=params.get("customer_email"),
+                    subject=params.get("subject"),
+                    body=params.get("body")
+                )
             else:
                 error = {"code": -32601, "message": f"Method {method} not found"}
                 

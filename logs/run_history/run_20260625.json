@@ -1,9 +1,10 @@
 {
-  "run_at": "2026-06-23T15:50:49.240992",
-  "tickets_processed": 4,
+  "run_at": "2026-06-25T16:23:07.309015",
+  "tickets_processed": 7,
   "escalations_drafted": 2,
   "watchlist_entries_logged": 1,
-  "low_risk_processed": 1,
+  "low_risk_processed": 4,
+  "resolutions_processed": 1,
   "details": [
     {
       "ticket_id": "ticket_001",
@@ -33,9 +34,8 @@
         "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
       },
       "outbox_action": "none",
-      "outbox_file_path": "",
       "processed_success": true,
-      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_001.txt"
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_001.txt"
     },
     {
       "ticket_id": "ticket_002",
@@ -66,9 +66,8 @@
         "recommended_action": "Escalate immediately to Account Manager Tony Stark (am.tony@revenueprotector.com). Conduct a wellness review and offer renewal concessions."
       },
       "outbox_action": "draft_account_manager_escalation",
-      "outbox_file_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\outbox\\escalations\\escalation_ticket_002_20260623_155049_222927.json",
       "processed_success": true,
-      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_002.txt"
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_002.txt"
     },
     {
       "ticket_id": "ticket_003",
@@ -99,9 +98,8 @@
         "recommended_action": "Escalate immediately to Account Manager Natasha Romanoff (am.natasha@revenueprotector.com). Conduct a wellness review and offer renewal concessions."
       },
       "outbox_action": "draft_account_manager_escalation",
-      "outbox_file_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\outbox\\escalations\\escalation_ticket_003_20260623_155049_231951.json",
       "processed_success": true,
-      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_003.txt"
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_003.txt"
     },
     {
       "ticket_id": "ticket_004",
@@ -132,9 +130,101 @@
         "recommended_action": "Assign to support queue with high priority. Log on watchlist and address the technical or billing complaint promptly to prevent escalation."
       },
       "outbox_action": "log_watchlist_entry",
-      "outbox_file_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\outbox\\watchlist\\watchlist_ticket_004_20260623_155049_238982.json",
       "processed_success": true,
-      "processed_path": "C:\\Users\\krish\\Desktop\\Capstone Project Kaggle\\data\\tickets\\processed\\ticket_004.txt"
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_004.txt"
+    },
+    {
+      "ticket_id": "ticket_005",
+      "sender_email": "elena.vance@blackmesa.org",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 10,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Query about API endpoints documentation",
+          "From: Elena Vance <elena"
+        ]
+      },
+      "crm_record": {
+        "email": "elena.vance@blackmesa.org",
+        "company_name": "Black Mesa Corp",
+        "annual_revenue": 150000,
+        "days_until_renewal": 90,
+        "account_manager_email": "am.natasha@revenueprotector.com",
+        "account_manager_name": "Natasha Romanoff",
+        "tier": "Enterprise"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Black Mesa Corp has long-term contract stability (90 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_005.txt"
+    },
+    {
+      "ticket_id": "ticket_006",
+      "sender_email": "fiona.gallagher@southside.co",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 33,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Account lock out",
+          "Renewal issues"
+        ]
+      },
+      "crm_record": {
+        "email": "fiona.gallagher@southside.co",
+        "company_name": "Southside Goods",
+        "annual_revenue": 12000,
+        "days_until_renewal": 5,
+        "account_manager_email": "am.tony@revenueprotector.com",
+        "account_manager_name": "Tony Stark",
+        "tier": "Mid-Market"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Southside Goods has long-term contract stability (5 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_006.txt"
+    },
+    {
+      "ticket_id": "ticket_007",
+      "sender_email": "gordon.freeman@aperturelabs.com",
+      "sentiment_verdict": {
+        "sentiment_label": "calm",
+        "frustration_score": 10,
+        "churn_signals_detected": false,
+        "key_phrases": [
+          "Subject: Serious data sync lag",
+          "From: Gordon Freeman <gordon"
+        ]
+      },
+      "crm_record": {
+        "email": "gordon.freeman@aperturelabs.com",
+        "company_name": "Aperture Labs",
+        "annual_revenue": 85000,
+        "days_until_renewal": -10,
+        "account_manager_email": "am.steve@revenueprotector.com",
+        "account_manager_name": "Steve Rogers",
+        "tier": "Mid-Market"
+      },
+      "risk_verdict": {
+        "churn_risk_score": 35,
+        "risk_tier": "LOW",
+        "rationale": "Enterprise client Aperture Labs has long-term contract stability (-10 days to renewal) and ticket tone is calm and constructive.",
+        "recommended_action": "Handle ticket through standard customer support workflow. No escalation required."
+      },
+      "outbox_action": "none",
+      "processed_success": true,
+      "processed_path": "C:\\Users\\dhruv\\OneDrive\\Desktop\\Git_Capstone\\Customer-Churn-Protector-main\\data\\tickets\\processed\\ticket_007.txt"
     }
   ]
 }
