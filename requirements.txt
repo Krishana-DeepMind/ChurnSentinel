@@ -1,2 +1,0 @@
-# Requirements for Revenue Protector
-# Runs entirely using the Python standard library. No external dependencies are strictly required.
