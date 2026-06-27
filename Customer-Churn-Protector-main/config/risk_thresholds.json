@@ -1,7 +1,0 @@
-{
-  "code_red_cutoff": 75,
-  "watch_cutoff": 40,
-  "revenue_weight": 0.4,
-  "renewal_weight": 0.3,
-  "sentiment_weight": 0.3
-}
