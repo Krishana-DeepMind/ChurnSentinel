@@ -76,6 +76,13 @@ The local web dashboard (built with FastAPI, Jinja2, and Bootstrap 5) serves as 
 
 The Revenue Protector runs entirely on standard Python 3.10+ libraries with **$0.00 external budgets and zero external API dependencies**.
 
+#### Run the Pipeline (CLI)
+To run the analysis pipeline directly in the terminal to process any new tickets in the inbox:
+```powershell
+python main.py
+```
+This runs the orchestrated agent workflow (reading new tickets, querying CRM, performing sentiment analysis and risk assessment, drafting escalations/watchlist items, and generating custom customer-facing email updates) and displays an output summary in the terminal.
+
 #### Run the Web App Dashboard
 ```powershell
 python -m uvicorn web.app:app --host 127.0.0.1 --port 8000

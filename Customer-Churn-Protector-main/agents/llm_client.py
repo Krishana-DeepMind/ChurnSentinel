@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import requests
 
 # Absolute paths
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -238,11 +239,91 @@ def simulate_risk_assessment(system_prompt, sentiment_verdict_json, crm_record_j
     
     return json.dumps(response)
 
+def load_env():
+    """Manually load env vars from .env in workspace root."""
+    env_path = os.path.join(BASE_DIR, ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    if "=" in line:
+                        k, v = line.split("=", 1)
+                        os.environ[k.strip()] = v.strip()
+
+def call_gemini_api(prompt, system_instruction=None):
+    """Calls Gemini API with json mode configuration."""
+    load_env()
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None
+        
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "responseMimeType": "application/json"
+        }
+    }
+    
+    if system_instruction:
+        payload["systemInstruction"] = {
+            "parts": [
+                {"text": system_instruction}
+            ]
+        }
+        
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=15)
+        if response.status_code == 200:
+            res_json = response.json()
+            candidates = res_json.get("candidates", [])
+            if candidates:
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if parts:
+                    return parts[0].get("text", "")
+        else:
+            print(f"[Gemini API] Request failed status={response.status_code}: {response.text}")
+    except Exception as e:
+        print(f"[Gemini API] Exception during request: {e}")
+    return None
+
 def simulate_acknowledgment_generation(sentiment_label, frustration_score, company_name):
     """
-    Simulates generating a customer acknowledgment email with tone customized to sentiment.
+    Generates a customer acknowledgment email using Gemini API, with simulated fallback.
     """
-    # Check if high frustration or angry/hostile or high risk
+    # 1. Try Gemini API
+    prompt = (
+        f"Generate a professional customer acknowledgment email.\n"
+        f"Company Name: {company_name}\n"
+        f"Customer Sentiment: {sentiment_label}\n"
+        f"Frustration Score: {frustration_score}/100\n\n"
+        f"Instructions:\n"
+        f"- If the customer has high frustration (score >= 50 or sentiment is angry/hostile), "
+        f"the email should apologize sincerely, acknowledge the urgency, and state that the ticket "
+        f"is escalated to the dedicated Account Manager and senior engineering.\n"
+        f"- Otherwise, it should be a polite receipt confirmation.\n"
+        f"You must return a JSON object with the keys 'subject' and 'body' (and nothing else)."
+    )
+    
+    gemini_response = call_gemini_api(prompt, "You are a customer success AI. Return only JSON.")
+    if gemini_response:
+        try:
+            parsed = json.loads(gemini_response)
+            if "subject" in parsed and "body" in parsed:
+                return json.dumps(parsed)
+        except Exception as e:
+            print(f"[Gemini API] Parsing error for acknowledgment: {e}")
+
+    # 2. Fallback to simulation
     is_high_risk = sentiment_label in ["angry", "hostile"] or frustration_score >= 50
     
     if is_high_risk:
@@ -278,11 +359,28 @@ def simulate_acknowledgment_generation(sentiment_label, frustration_score, compa
 
 def simulate_resolution_generation(manager_notes, company_name):
     """
-    Simulates translating technical manager resolution notes into a polite, warm, and professional email.
+    Translates technical manager resolution notes into a polite, warm, and professional customer email using Gemini API, with simulated fallback.
     """
+    # 1. Try Gemini API
+    prompt = (
+        f"Translate these technical manager resolution notes into a polite, warm, and professional customer resolution email.\n"
+        f"Company Name: {company_name}\n"
+        f"Resolution Notes: {manager_notes}\n\n"
+        f"You must return a JSON object with the keys 'subject' and 'body' (and nothing else)."
+    )
+    
+    gemini_response = call_gemini_api(prompt, "You are a customer success AI. Return only JSON.")
+    if gemini_response:
+        try:
+            parsed = json.loads(gemini_response)
+            if "subject" in parsed and "body" in parsed:
+                return json.dumps(parsed)
+        except Exception as e:
+            print(f"[Gemini API] Parsing error for resolution: {e}")
+
+    # 2. Fallback to simulation
     subject = f"Resolved: Support Ticket Resolution - {company_name}"
     
-    # Capitalize first word / formatting of notes
     notes_formatted = manager_notes.strip()
     if notes_formatted:
         if not notes_formatted.endswith(('.', '!', '?')):
@@ -305,4 +403,5 @@ def simulate_resolution_generation(manager_notes, company_name):
         "subject": subject,
         "body": body
     })
+
 

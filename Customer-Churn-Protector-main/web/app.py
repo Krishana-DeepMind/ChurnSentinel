@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import sys
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -67,9 +68,99 @@ def complete_ticket(ticket_id: str):
             os.makedirs(os.path.dirname(completed_path), exist_ok=True)
             with open(completed_path, "w", encoding="utf-8") as f:
                 json.dump(completed_ids, f, indent=2)
+                
+            # Make the directory for completion emails
+            completion_dir = os.path.join(BASE_DIR, "data", "completion_email")
+            os.makedirs(completion_dir, exist_ok=True)
+            
+            # Find ticket text and customer details
+            ticket_text = ""
+            customer_email = "customer@revenueprotector.com"
+            company_name = "Customer"
+            
+            # Try to read ticket text from processed or inbox
+            processed_path = os.path.join(BASE_DIR, "data", "tickets", "processed", f"{ticket_id}.txt")
+            if not os.path.exists(processed_path):
+                processed_path = os.path.join(BASE_DIR, "data", "tickets", "inbox", f"{ticket_id}.txt")
+                
+            if os.path.exists(processed_path):
+                try:
+                    with open(processed_path, "r", encoding="utf-8") as f:
+                        ticket_text = f.read()
+                    
+                    # Extract email from ticket
+                    match = re.search(r'From:\s*(?:[^<\n]*<)?\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', ticket_text, re.IGNORECASE)
+                    if match:
+                        customer_email = match.group(1).strip()
+                    else:
+                        match2 = re.search(r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', ticket_text)
+                        if match2:
+                            customer_email = match2.group(1).strip()
+                            
+                    # Query CRM to get company name
+                    crm_res = server.query_crm_by_email(customer_email)
+                    if crm_res.get("found"):
+                        company_name = crm_res["record"].get("company_name", "Customer")
+                except Exception as e:
+                    print(f"Error reading ticket content or CRM for completion email: {e}", file=sys.stderr)
+            
+            # Call Gemini API to generate the completion email
+            from agents.llm_client import call_gemini_api
+            prompt = (
+                f"Generate a unique, personalized, professional and warm customer email stating that their support request has been successfully resolved.\n"
+                f"Company Name: {company_name}\n"
+                f"Original Ticket Text:\n\"\"\"\n{ticket_text}\n\"\"\"\n\n"
+                f"Instructions:\n"
+                f"- Thank them for their patience.\n"
+                f"- Read the original ticket text carefully and explicitly identify the specific problem they reported.\n"
+                f"- Write a highly specific response explaining that their exact problem (describe it in detail based on the ticket) has been resolved.\n"
+                f"- Make the email highly unique to this specific customer and their problem, avoiding generic templates.\n"
+                f"- You must return a JSON object with the keys 'subject' and 'body' (and nothing else)."
+            )
+            
+            subject = ""
+            body = ""
+            gemini_response = call_gemini_api(prompt, "You are a customer success AI. Return only JSON.")
+            if gemini_response:
+                try:
+                    parsed = json.loads(gemini_response)
+                    if "subject" in parsed and "body" in parsed:
+                        subject = parsed["subject"]
+                        body = parsed["body"]
+                except Exception as e:
+                    print(f"Error parsing Gemini API response for completion: {e}", file=sys.stderr)
+            
+            # Fallback if Gemini failed
+            if not subject or not body:
+                # Try to extract the first line or a sentence of the ticket to mention the issue
+                issue_summary = "the issue reported in support ticket"
+                clean_lines = [line.strip() for line in ticket_text.splitlines() if line.strip() and not line.startswith(("From:", "To:", "Subject:", "Date:"))]
+                if clean_lines:
+                    issue_summary = f"your issue regarding '{clean_lines[0]}'"
+                    if len(issue_summary) > 100:
+                        issue_summary = issue_summary[:97] + "..."
+                
+                subject = f"Resolved: Support Ticket - {company_name}"
+                body = (
+                    f"Dear {company_name} Team,\n\n"
+                    f"We are happy to inform you that {issue_summary} has been successfully resolved.\n\n"
+                    f"We sincerely appreciate your patience as our team worked through this. Please let us know "
+                    f"if you have any further questions or if there is anything else we can do to assist you.\n\n"
+                    f"Warm regards,\n"
+                    f"Customer Support & Success Team"
+                )
+                
+            # Write to completion_email/completion_{ticket_id}.txt
+            out_file_path = os.path.join(completion_dir, f"completion_{ticket_id}.txt")
+            with open(out_file_path, "w", encoding="utf-8") as f:
+                f.write(f"To: {customer_email}\nSubject: {subject}\n\nBody:\n{body}\n")
+                
+            print(f"Completion email written to: {out_file_path}", file=sys.stderr)
+            
         except Exception as e:
             return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
     return JSONResponse({"status": "success"})
+
 
 @app.post("/uncomplete/{ticket_id}")
 def uncomplete_ticket(ticket_id: str):
@@ -86,30 +177,20 @@ def uncomplete_ticket(ticket_id: str):
         try:
             with open(completed_path, "w", encoding="utf-8") as f:
                 json.dump(completed_ids, f, indent=2)
+                
+            # Also clean up/delete the completion email when restoring to active
+            completion_path = os.path.join(BASE_DIR, "data", "completion_email", f"completion_{ticket_id}.txt")
+            if os.path.exists(completion_path):
+                try:
+                    os.remove(completion_path)
+                except Exception as e:
+                    print(f"Error removing completion email for {ticket_id}: {e}", file=sys.stderr)
         except Exception as e:
             return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
     return JSONResponse({"status": "success"})
 
-def get_customer_draft(ticket_id: str):
-    outbox_dir = os.path.join(BASE_DIR, "data", "outbox_to_customer")
-    if not os.path.exists(outbox_dir):
-        return None
-    try:
-        files = os.listdir(outbox_dir)
-    except Exception:
-        return None
-    
-    # Match files like ack_ticket_002_... or resolution_ticket_002_...
-    t_num = ticket_id.replace("ticket_", "")
-    matching = [f for f in files if (f.startswith(f"ack_ticket_{t_num}_") or f.startswith(f"resolution_ticket_{t_num}_")) and f.endswith(".txt")]
-    if not matching:
-        return None
-    
-    # Sort: resolution takes precedence over ack, and pick the newest one
-    matching.sort(key=lambda x: (1 if x.startswith("resolution_") else 0, x), reverse=True)
-    filename = matching[0]
-    file_path = os.path.join(outbox_dir, filename)
-    
+
+def parse_draft_file(file_path, filename):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -142,8 +223,44 @@ def get_customer_draft(ticket_id: str):
             "filename": filename
         }
     except Exception as e:
-        print(f"Error parsing draft for {ticket_id}: {e}", file=sys.stderr)
+        print(f"Error parsing draft for {filename}: {e}", file=sys.stderr)
         return None
+
+
+def get_completion_draft(ticket_id: str):
+    completion_path = os.path.join(BASE_DIR, "data", "completion_email", f"completion_{ticket_id}.txt")
+    if os.path.exists(completion_path):
+        return parse_draft_file(completion_path, f"completion_{ticket_id}.txt")
+    return None
+
+
+def get_outbox_draft(ticket_id: str):
+    outbox_dir = os.path.join(BASE_DIR, "data", "outbox_to_customer")
+    if not os.path.exists(outbox_dir):
+        return None
+    try:
+        files = os.listdir(outbox_dir)
+    except Exception:
+        return None
+    
+    # Match files like ack_ticket_002_... or resolution_ticket_002_...
+    t_num = ticket_id.replace("ticket_", "")
+    matching = [f for f in files if (f.startswith(f"ack_ticket_{t_num}_") or f.startswith(f"resolution_ticket_{t_num}_")) and f.endswith(".txt")]
+    if not matching:
+        return None
+    
+    # Sort: resolution takes precedence over ack, and pick the newest one
+    matching.sort(key=lambda x: (1 if x.startswith("resolution_") else 0, x), reverse=True)
+    filename = matching[0]
+    file_path = os.path.join(outbox_dir, filename)
+    return parse_draft_file(file_path, filename)
+
+
+def get_customer_draft(ticket_id: str):
+    comp = get_completion_draft(ticket_id)
+    if comp:
+        return comp
+    return get_outbox_draft(ticket_id)
 
 @app.get("/", response_class=HTMLResponse)
 def read_dashboard(request: Request, process: str = None):
@@ -267,6 +384,14 @@ def read_dashboard(request: Request, process: str = None):
                 draft = get_customer_draft(t_id)
                 if draft:
                     risk_assessments_map[t_id]["customer_draft"] = draft
+                
+                outbox_draft = get_outbox_draft(t_id)
+                if outbox_draft:
+                    risk_assessments_map[t_id]["outbox_draft"] = outbox_draft
+                
+                completion_draft = get_completion_draft(t_id)
+                if completion_draft:
+                    risk_assessments_map[t_id]["completion_draft"] = completion_draft
 
     # Build final audit logs list, sorted newest day first
     audit_logs = []

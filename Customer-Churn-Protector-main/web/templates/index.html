@@ -590,8 +590,8 @@
                             </td>
                             <td>
                                 {% if item.email %}
-                                    {% if item.customer_draft %}
-                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.customer_draft.to | urlencode }}&su={{ item.customer_draft.subject | urlencode }}&body={{ item.customer_draft.body | urlencode }}" target="_blank" class="text-indigo" style="color: #818cf8; text-decoration: underline;" title="Draft file: {{ item.customer_draft.filename }}">
+                                    {% if item.outbox_draft %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.outbox_draft.to | urlencode }}&su={{ item.outbox_draft.subject | urlencode }}&body={{ item.outbox_draft.body | urlencode }}" target="_blank" class="text-indigo" style="color: #818cf8; text-decoration: underline;" title="Draft file: {{ item.outbox_draft.filename }}">
                                         {{ item.email }} <i class="bi bi-file-earmark-text ms-1" title="Has drafted customer email"></i>
                                     </a>
                                     {% else %}
@@ -705,8 +705,8 @@
                         </div>
                         <div class="mt-3 d-flex justify-content-end gap-2">
                             {% if esc.email %}
-                                {% if esc.customer_draft %}
-                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ esc.customer_draft.to | urlencode }}&su={{ esc.customer_draft.subject | urlencode }}&body={{ esc.customer_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ esc.customer_draft.filename }}">
+                                {% if esc.outbox_draft %}
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ esc.outbox_draft.to | urlencode }}&su={{ esc.outbox_draft.subject | urlencode }}&body={{ esc.outbox_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ esc.outbox_draft.filename }}">
                                     <i class="bi bi-reply-fill me-1"></i>Reply (Gmail - Custom Draft)
                                 </a>
                                 {% else %}
@@ -760,8 +760,8 @@
                             <span style="font-size: 0.75rem;">Logged at: {{ wl.logged_at[:19] | replace('T', ' ') }}</span>
                             <div class="d-flex gap-2">
                                 {% if wl.email %}
-                                    {% if wl.customer_draft %}
-                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ wl.customer_draft.to | urlencode }}&su={{ wl.customer_draft.subject | urlencode }}&body={{ wl.customer_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ wl.customer_draft.filename }}">
+                                    {% if wl.outbox_draft %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ wl.outbox_draft.to | urlencode }}&su={{ wl.outbox_draft.subject | urlencode }}&body={{ wl.outbox_draft.body | urlencode }}" target="_blank" class="btn btn-sm btn-outline-info text-info border-info border-opacity-50" style="border-radius: 8px;" title="Draft file: {{ wl.outbox_draft.filename }}">
                                         <i class="bi bi-reply-fill me-1"></i>Reply (Gmail - Custom Draft)
                                     </a>
                                     {% else %}
@@ -905,11 +905,12 @@
                                 </td>
                                 <td>
                                       {% if item.email %}
-                                          {% if item.customer_draft %}
-                                          <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.customer_draft.to | urlencode }}&su={{ item.customer_draft.subject | urlencode }}&body={{ item.customer_draft.body | urlencode }}" target="_blank" class="text-secondary-custom small" title="Draft file: {{ item.customer_draft.filename }}"><i class="bi bi-envelope me-1"></i>{{ item.email }} <i class="bi bi-file-earmark-text ms-1" title="Has drafted customer email"></i></a>
-                                          {% else %}
-                                          <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}" target="_blank" class="text-secondary-custom small"><i class="bi bi-envelope me-1"></i>{{ item.email }}</a>
-                                          {% endif %}
+                                          <a href="#" data-bs-toggle="modal" data-bs-target="#modal-email-{{ item.ticket_id }}" class="text-indigo small" style="color: #818cf8; text-decoration: underline; cursor: pointer;" title="View completion email details">
+                                              <i class="bi bi-envelope me-1"></i>{{ item.email }}
+                                              {% if item.completion_draft %}
+                                              <i class="bi bi-file-earmark-text ms-1" title="Has drafted customer email"></i>
+                                              {% endif %}
+                                          </a>
                                       {% else %}
                                      <span class="text-secondary-custom">-</span>
                                      {% endif %}
@@ -1049,6 +1050,49 @@
             </div>
             <div class="modal-footer border-top border-secondary border-opacity-25">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Completion Email Modals -->
+{% for item in completed_assessments %}
+<div class="modal fade text-start" id="modal-email-{{ item.ticket_id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-slate border-secondary border-opacity-50 text-white" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+            <div class="modal-header border-bottom border-secondary border-opacity-25">
+                <h5 class="modal-title"><i class="bi bi-envelope-open me-2 text-indigo" style="color: #818cf8;"></i>Completion Email</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if item.completion_draft %}
+                <div class="mb-3">
+                    <strong>To:</strong> <span class="text-secondary-custom">{{ item.completion_draft.to }}</span><br>
+                    <strong>Subject:</strong> <span class="text-secondary-custom">{{ item.completion_draft.subject }}</span>
+                </div>
+                <hr class="border-secondary border-opacity-25">
+                <div class="bg-black p-4 rounded text-light mb-0" style="white-space: pre-wrap; font-family: 'Outfit', sans-serif; font-size: 0.95rem; line-height: 1.6;">{{ item.completion_draft.body }}</div>
+                {% else %}
+                <div class="mb-3">
+                    <strong>To:</strong> <span class="text-secondary-custom">{{ item.email }}</span><br>
+                    <strong>Subject:</strong> <span class="text-secondary-custom">Resolved: Support Ticket</span>
+                </div>
+                <hr class="border-secondary border-opacity-25">
+                <div class="text-secondary-custom style-italic p-2">No completion email content is available for this ticket.</div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-25 d-flex justify-content-between">
+                {% if item.completion_draft %}
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.completion_draft.to | urlencode }}&su={{ item.completion_draft.subject | urlencode }}&body={{ item.completion_draft.body | urlencode }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 8px;">
+                    <i class="bi bi-send me-1"></i> Send via Gmail
+                </a>
+                {% else %}
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ item.email }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 8px;">
+                    <i class="bi bi-send me-1"></i> Compose via Gmail
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button>
             </div>
         </div>
     </div>

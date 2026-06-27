@@ -162,10 +162,8 @@ def mark_ticket_processed(ticket_id):
         print(f"Error marking ticket processed: {e}", file=sys.stderr)
         return {"success": False, "new_path": ""}
 
-# New local directories for simulated customer outbox and resolutions
+# New local directory for simulated customer outbox
 OUTBOX_CUSTOMER_DIR = os.path.join(BASE_DIR, "data", "outbox_to_customer")
-MANAGER_RESOLUTIONS_DIR = os.path.join(BASE_DIR, "data", "manager_resolutions")
-MANAGER_RESOLUTIONS_PROCESSED_DIR = os.path.join(MANAGER_RESOLUTIONS_DIR, "processed")
 
 def draft_customer_acknowledgment(ticket_id, customer_email, subject, body):
     """
@@ -187,93 +185,6 @@ def draft_customer_acknowledgment(ticket_id, customer_email, subject, body):
         return {"success": True, "file_path": file_path}
     except Exception as e:
         print(f"Error drafting customer acknowledgment: {e}", file=sys.stderr)
-        return {"success": False, "file_path": ""}
-
-def read_pending_resolutions():
-    """
-    Tool 4.7: Scans data/manager_resolutions/ for any .txt files.
-    For each file, finds the ticket_id from the filename (e.g. resolution_ticket_002.txt),
-    reads the notes, looks up the corresponding customer email from the processed/archived
-    ticket file, and returns the metadata.
-    Returns: list of dicts [{ "ticket_id": string, "notes": string, "customer_email": string, "file_path": string }]
-    """
-    resolutions = []
-    if not os.path.exists(MANAGER_RESOLUTIONS_DIR):
-        return resolutions
-        
-    for filename in sorted(os.listdir(MANAGER_RESOLUTIONS_DIR)):
-        if filename.endswith(".txt"):
-            file_path = os.path.join(MANAGER_RESOLUTIONS_DIR, filename)
-            
-            # Parse ticket ID, e.g. resolution_ticket_002.txt -> ticket_002
-            match = re.search(r'(ticket_\d+)', filename)
-            if not match:
-                continue
-            ticket_id = match.group(1)
-            
-            # Read manager notes
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    notes = f.read().strip()
-            except Exception as e:
-                print(f"Error reading resolution file {filename}: {e}", file=sys.stderr)
-                continue
-                
-            # Find customer email from processed ticket or inbox ticket
-            customer_email = ""
-            ticket_src = os.path.join(PROCESSED_DIR, f"{ticket_id}.txt")
-            if not os.path.exists(ticket_src):
-                ticket_src = os.path.join(INBOX_DIR, f"{ticket_id}.txt")
-                
-            if os.path.exists(ticket_src):
-                try:
-                    with open(ticket_src, "r", encoding="utf-8") as f:
-                        ticket_content = f.read()
-                    customer_email = extract_email(ticket_content)
-                except Exception as e:
-                    print(f"Error extracting email for {ticket_id}: {e}", file=sys.stderr)
-            
-            resolutions.append({
-                "ticket_id": ticket_id,
-                "notes": notes,
-                "customer_email": customer_email,
-                "file_path": file_path
-            })
-            
-    return resolutions
-
-def draft_customer_resolution(ticket_id, customer_email, subject, body, resolution_file_path):
-    """
-    Tool 4.8: Writes a translated customer resolution email to data/outbox_to_customer/
-    and moves the original manager resolution file to manager_resolutions/processed/.
-    Returns: { "success": bool, "file_path": string }
-    """
-    if not os.path.exists(OUTBOX_CUSTOMER_DIR):
-        os.makedirs(OUTBOX_CUSTOMER_DIR, exist_ok=True)
-    if not os.path.exists(MANAGER_RESOLUTIONS_PROCESSED_DIR):
-        os.makedirs(MANAGER_RESOLUTIONS_PROCESSED_DIR, exist_ok=True)
-        
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    filename = f"resolution_{ticket_id}_{timestamp}.txt"
-    file_path = os.path.join(OUTBOX_CUSTOMER_DIR, filename)
-    
-    content = f"To: {customer_email}\nSubject: {subject}\n\nBody:\n{body}\n"
-    
-    try:
-        # Write outbox email
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-            
-        # Archive manager's resolution file
-        if os.path.exists(resolution_file_path):
-            base_name = os.path.basename(resolution_file_path)
-            dest_name = f"{os.path.splitext(base_name)[0]}_{timestamp}.txt"
-            dest_path = os.path.join(MANAGER_RESOLUTIONS_PROCESSED_DIR, dest_name)
-            shutil.move(resolution_file_path, dest_path)
-            
-        return {"success": True, "file_path": file_path}
-    except Exception as e:
-        print(f"Error drafting customer resolution: {e}", file=sys.stderr)
         return {"success": False, "file_path": ""}
 
 def run_jsonrpc_server():
@@ -329,16 +240,6 @@ def run_jsonrpc_server():
                     customer_email=params.get("customer_email"),
                     subject=params.get("subject"),
                     body=params.get("body")
-                )
-            elif method == "read_pending_resolutions":
-                res_val = read_pending_resolutions()
-            elif method == "draft_customer_resolution":
-                res_val = draft_customer_resolution(
-                    ticket_id=params.get("ticket_id"),
-                    customer_email=params.get("customer_email"),
-                    subject=params.get("subject"),
-                    body=params.get("body"),
-                    resolution_file_path=params.get("resolution_file_path")
                 )
             else:
                 error = {"code": -32601, "message": f"Method {method} not found"}
